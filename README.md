@@ -16,6 +16,7 @@ If you want to uninstall it from SteamVR, run `./vrdio-launch.sh --uninstall`.
 
 ## Features to come
 - [ ] Audio mirroring
+- [ ] 
 Feel free to request features!
 
 ## Building
