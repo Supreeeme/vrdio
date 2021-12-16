@@ -11,7 +11,7 @@ Control volume, audio device configurations, and set a default audio configurati
 - Qt5/Qt6 (probably already installed - if not, look at [Qt's dependencies](https://doc.qt.io/qt-5/linux-requirements.html))
 
 ## How do I get it?
-Grab the latest release, place and extract it wherever you like, and run `./vrdio-launch.sh` while SteamVR is open. It will be autolaunched next time you run SteamVR.
+Grab the latest release, place and extract it wherever you like, and double click (or run from terminal) `vrdio-launch.sh` while SteamVR is open. It will be autolaunched next time you run SteamVR.
 If you want to uninstall it from SteamVR, run `./vrdio-launch.sh --uninstall`.
 
 ## Features to come
