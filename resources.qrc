@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="main.qml">src/qml/main.qml</file>
+        <file alias="VolumeSlider.qml">src/qml/VolumeSlider.qml</file>
+        <file alias="VRComboBox.qml">src/qml/VRComboBox.qml</file>
+        <file alias="HeaderText.qml">src/qml/HeaderText.qml</file>
+        <file alias="SourceSansPro-Regular.ttf">res/SourceSansPro-Regular.ttf</file>
+	<file alias="speaker-256.png">res/speaker-256.png</file>
+    </qresource>
+</RCC>

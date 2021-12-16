@@ -1,0 +1,7 @@
+.cache
+.idea
+build
+vrdio
+compile_commands.json
+vrdio-launch.sh
+vrdio-release*
