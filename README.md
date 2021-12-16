@@ -1,5 +1,5 @@
 # VRdio - Audio Controls in VR for Linux
-Control volume, audio device configurations, and set a default audio configuration all from VR.
+Control volume, audio device configurations, and set a default audio configuration all from the SteamVR dashboard.
 (a screenshot would be great to have here but screenshots unfortunately don't work in steamvr linux valve pls fix)
 
 ## Dependencies
