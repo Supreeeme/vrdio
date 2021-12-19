@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
     }
 
     QQuickRenderControl renderCtrl;
-    // need to use qquickrendercontrol constructor, but also can't set url yet
     QQuickView w(QUrl(),&renderCtrl);
     QVulkanInstance instance;
 

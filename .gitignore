@@ -1,6 +1,7 @@
 .cache
 .idea
 build
+debug
 vrdio
 compile_commands.json
 vrdio-launch.sh

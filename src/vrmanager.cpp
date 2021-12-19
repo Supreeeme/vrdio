@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <QGuiApplication>
 #include <QQuickItem>
 #include <QQmlEngine>
@@ -20,7 +21,6 @@
 using namespace vr;
 
 
-QTemporaryDir temp_dir; // for icon
 VRManager::VRManager(QQuickView* w, QQuickRenderControl* rc) :
     window(w),
     renderCtrl(rc),
@@ -50,8 +50,8 @@ void VRManager::prepareSceneGraph(){
     window->setRenderTarget(QQuickRenderTarget::fromVulkanImage(image, curLayout, QSize(overlayWidth, overlayHeight)));
 
     // create timer
-    checkTimer = new QTimer(this);
-    connect(checkTimer, SIGNAL(timeout()), this, SLOT(checkRender()));
+    checkTimer = std::make_unique<QTimer>(this);
+    connect(checkTimer.get(), SIGNAL(timeout()), this, SLOT(checkRender()));
     checkTimer->setInterval(20);
     checkTimer->start();
 
@@ -59,6 +59,20 @@ void VRManager::prepareSceneGraph(){
 
 void VRManager::pollEvents(){
     VREvent_t event{};
+    // quitting
+    while( VRSystem()->PollNextEvent(&event, sizeof(event)) ){
+	switch(event.eventType){
+	    case VREvent_Quit:{
+		VRSystem()->AcknowledgeQuit_Exiting();
+		std::cout << "Exiting!" << std::endl;
+		QGuiApplication::quit();
+	    }
+		break;
+	    default: break;
+	}
+    }
+
+    // input
     while( VROverlay()->PollNextOverlayEvent(overlay, &event, sizeof(event)) ){
         switch(event.eventType) {
 
@@ -283,30 +297,15 @@ void VRManager::initVR(bool uninstall){
 void VRManager::initVulkan(){
     // get extensions required by SteamVR
     uint32_t extSize = VRCompositor()->GetVulkanInstanceExtensionsRequired(nullptr, 0);
-    char extList[extSize];
-    VRCompositor()->GetVulkanInstanceExtensionsRequired(extList, extSize);
-
-    std::string curExt;
-    QByteArrayList reqExts;
-    for (uint32_t i=0; i<extSize; i++){
-        if (extList[i] != ' '){
-            curExt.push_back(extList[i]);
-        } else {
-            reqExts.push_back(QByteArray::fromStdString(curExt));
-            curExt.clear();
-        }
-    }
-
-    // remove null terminators from last extension
-    curExt.erase(std::find(curExt.begin(), curExt.end(), '\0'), curExt.end());
-    // push last extension
-    reqExts.push_back(QByteArray::fromStdString(curExt));
+    QByteArray extList;
+    extList.resize(extSize);
+    VRCompositor()->GetVulkanInstanceExtensionsRequired(extList.data(), extSize);
+    QByteArrayList reqExts = extList.split(' ');
 
     instance.setExtensions(reqExts);
 
     if(!instance.create()){
-        std::cout << "An error occurred" << std::endl;
-        exit(1);
+	throw std::runtime_error("Failed to create Vulkan instance");
     }
     vkFuncs = instance.functions();
 }
@@ -360,40 +359,20 @@ void VRManager::createLogicalDevice(){
     vkFuncs->vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &exts2, ext2list.data());
 
     uint32_t extSize = VRCompositor()->GetVulkanDeviceExtensionsRequired(physicalDevice, nullptr, 0);
-    char extList[extSize];
-    VRCompositor()->GetVulkanDeviceExtensionsRequired(physicalDevice, extList, extSize);
-
-    // build list
-    std::string curExt;
-    std::vector<std::string> reqExts;
-    for (uint32_t i=0; i<extSize; i++){
-        if (extList[i] != ' '){
-            curExt.push_back(extList[i]);
-        } else {
-            reqExts.push_back(curExt);
-            curExt.clear();
-        }
-    }
-    // push last extension
-    reqExts.push_back(curExt);
-
-    // convert to char** for vulkan
-    int numExts = reqExts.size();
-    
-    char *enabledExts[numExts];
-    for (int i=0; i<numExts; i++){
-        enabledExts[i] = new char[reqExts[i].size()+1];
-	std::strcpy(enabledExts[i],reqExts[i].data());
+    QByteArray extList;
+    extList.resize(extSize);
+    VRCompositor()->GetVulkanDeviceExtensionsRequired(physicalDevice, extList.data(), extSize);
+    QByteArrayList reqExts = extList.split(' ');
+    std::vector<const char*> reqExts_vk;
+    for (auto& str : reqExts){
+	str.push_back('\0'); // add null terminators
+	reqExts_vk.push_back(str.data());
     }
 
-    createInfo.enabledExtensionCount = numExts;
-    createInfo.ppEnabledExtensionNames = enabledExts;
+    createInfo.enabledExtensionCount = reqExts.size();
+    createInfo.ppEnabledExtensionNames = reqExts_vk.data();
     createInfo.enabledLayerCount = 0;
     vkFuncs->vkCreateDevice(physicalDevice, &createInfo, nullptr, &device);
-
-    // delete enabled exts
-    for (int i=0; i<numExts; i++)
-        delete [] enabledExts[i];
 
     devFuncs = instance.deviceFunctions(device);
     // save graphics queue
@@ -549,7 +528,6 @@ VRManager::~VRManager(){
     devFuncs->vkDestroyCommandPool(device, commandPool, nullptr);
     devFuncs->vkDestroyImage(device, image, nullptr);
     devFuncs->vkFreeMemory(device, imageMem, nullptr);
-    delete checkTimer;
     VR_Shutdown();
 }
 

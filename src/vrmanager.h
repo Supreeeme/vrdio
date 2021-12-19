@@ -5,6 +5,8 @@
 #include <QQuickView>
 #include <QVulkanInstance>
 #include <QQuickGraphicsDevice>
+#include <memory>
+#include <QTemporaryDir>
 #include "openvr.h"
 
 class VRManager : public QObject
@@ -38,6 +40,8 @@ private:
 
     void pollEvents();
 
+    QTemporaryDir temp_dir; // for icon
+
     QQuickView *window;
     QQuickRenderControl *renderCtrl;
     QVulkanInstance instance;
@@ -58,7 +62,7 @@ private:
 
     vr::VROverlayHandle_t overlay, icon;
     int overlayWidth, overlayHeight;
-    QTimer *checkTimer;
+    std::unique_ptr<QTimer> checkTimer;
 
     Qt::MouseButtons activeMouseButtons;
     QPointF lastPos;
