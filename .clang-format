@@ -1,0 +1,13 @@
+---
+BasedOnStyle: LLVM
+AlignOperands: Align
+AlignAfterOpenBracket: DontAlign
+BreakBeforeBinaryOperators: NonAssignment
+IndentWidth: 4
+TabWidth: 4
+ContinuationIndentWidth: 8
+ColumnLimit: 100
+IncludeBlocks: Regroup
+UseTab: AlignWithSpaces
+PointerAlignment: Left
+---
